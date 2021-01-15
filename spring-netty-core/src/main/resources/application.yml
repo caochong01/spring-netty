@@ -1,0 +1,9 @@
+netty:
+  config:
+    port: 8989
+
+json:
+  data: asdqweasd
+  config:
+    xml: true
+    yml: false

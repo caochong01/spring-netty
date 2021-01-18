@@ -27,6 +27,7 @@ public class SpringNettyApplication {
     public static void run(String[] args) {
         System.out.println("启动Netty服务和spring初始化容器");
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(SpringBeanInit.SpringConfig.class);
+        SpringStaticEnv.setApplicationContext(context); // 存储一份上下文信息
         System.out.println(context.getApplicationName());
 
         // TODO 测试

@@ -9,12 +9,19 @@ import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 
+import java.util.Arrays;
+
 @Configuration
 public class RouteImportBeanDefinitionRegistrar implements ImportBeanDefinitionRegistrar {
     private final String DEFAULT_RESOURACE_PATTERN = "**/*.class";
 
     @Override
     public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+
+        System.out.println("------------------ooo");
+        importingClassMetadata.getAnnotationTypes().forEach(System.out::println);
+        Arrays.stream(registry.getBeanDefinitionNames()).forEach(System.out::println);
+
 
         /**
          * 拿到注解信息

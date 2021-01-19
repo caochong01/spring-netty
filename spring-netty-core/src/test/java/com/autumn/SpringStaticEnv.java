@@ -3,6 +3,9 @@ package com.autumn;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 
+/**
+ * 存储与 Application相关的资源
+ */
 public class SpringStaticEnv {
     // spring 的上下文信息
     private static ApplicationContext APPLICATION_CONTEXT;

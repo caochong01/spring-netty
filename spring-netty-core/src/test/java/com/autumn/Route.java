@@ -1,16 +1,20 @@
 package com.autumn;
 
-import org.springframework.core.annotation.AliasFor;
-import org.springframework.stereotype.Component;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-import java.lang.annotation.*;
+/**
+ * 路由管理类，分发器类dispatch
+ */
+public class Route {
 
-@Target({ElementType.TYPE, ElementType.METHOD})
-@Retention(RetentionPolicy.RUNTIME)
-@Documented
-@Component
-public @interface Route {
+    // 保存 类路径、方法路径、Method对象、参数对象列表、原始类实例化的bean、注解参数
+    private static final ConcurrentHashMap<String, RouteNode> routeMap = new ConcurrentHashMap<>();
 
-    @AliasFor(annotation = Component.class)
-    String value();
+    private Route() {
+    }
+
+    public static Map<String, RouteNode> routeMap() {
+        return routeMap;
+    }
 }

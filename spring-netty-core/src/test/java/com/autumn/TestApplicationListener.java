@@ -5,7 +5,6 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.Arrays;
@@ -17,6 +16,8 @@ import java.util.Map;
  */
 @Component
 public class TestApplicationListener implements ApplicationListener<ContextRefreshedEvent> {
+
+
     /**
      * Handle an application event.
      *
@@ -27,13 +28,24 @@ public class TestApplicationListener implements ApplicationListener<ContextRefre
         ApplicationContext context = event.getApplicationContext();
         System.out.println("存储一份上下文信息");
         SpringStaticEnv.setApplicationContext(context); // 存储一份上下文信息
+        Map<String, Object> routeAnnotation = context.getBeansWithAnnotation(RouteMapping.class);
 
-        Map<String, Object> routeAnnotation = context.getBeansWithAnnotation(Route.class);
         routeAnnotation.forEach((key, val) -> {
-            System.out.println(key + " " + val.getClass());
             Class<?> aClass = val.getClass();
-            Arrays.stream(aClass.getDeclaredMethods()).forEach(System.out::println);
             Method[] methods = aClass.getDeclaredMethods();
+            RouteNode node = new RouteNode(key, aClass.getAnnotation(RouteMapping.class), val, methods.length);
+
+            for (Method method : methods) {
+                RouteMapping routeMapping;
+                if ((routeMapping = method.getAnnotation(RouteMapping.class)) != null) {
+                    RouteNode childNode = new RouteNode(routeMapping.value(), routeMapping, method, val);
+                    node.addChildNode(childNode);
+                }
+            }
+            if (!node.isNullChildNode())
+                Route.routeMap().put(key, node);
+
+
             for (Method method : methods) {
                 Arrays.stream(method.getAnnotations()).forEach(System.out::println);
                 Type[] types = method.getParameterTypes();
@@ -43,7 +55,7 @@ public class TestApplicationListener implements ApplicationListener<ContextRefre
             }
         });
 
-        System.out.println(event.getSource());
         System.out.println("ContextRefreshedEvent 触发。");
     }
+
 }

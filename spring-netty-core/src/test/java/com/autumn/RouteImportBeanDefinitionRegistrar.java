@@ -26,13 +26,13 @@ public class RouteImportBeanDefinitionRegistrar implements ImportBeanDefinitionR
         /**
          * 拿到注解信息
          */
-        AnnotationAttributes annoAttrs = AnnotationAttributes.fromMap(importingClassMetadata.getAnnotationAttributes(Route.class.getName()));
+        AnnotationAttributes annoAttrs = AnnotationAttributes.fromMap(importingClassMetadata.getAnnotationAttributes(RouteMapping.class.getName()));
 
         ClassPathBeanDefinitionScanner scanner = new ClassPathBeanDefinitionScanner(registry);
         // bean 的名字生成规则在AnnotationBeanNameGenerator
         scanner.setBeanNameGenerator(new AnnotationBeanNameGenerator());
         // 设置哪些注解的扫描
-        scanner.addIncludeFilter(new AnnotationTypeFilter(Route.class));
+        scanner.addIncludeFilter(new AnnotationTypeFilter(RouteMapping.class));
         scanner.scan("**/*.class");
     }
 }

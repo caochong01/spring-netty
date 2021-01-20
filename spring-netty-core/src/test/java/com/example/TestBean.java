@@ -43,7 +43,7 @@ public class TestBean {
             String yml = environment.getProperty("json.config.yml");
             System.out.println(yml);
             Boolean xml = environment.getProperty("json.config.xml", boolean.class);
-            System.out.println(xml.getClass());
+            System.out.println(xml);
             System.out.println("hello, world!" + port);
             return "hello, world!";
         }

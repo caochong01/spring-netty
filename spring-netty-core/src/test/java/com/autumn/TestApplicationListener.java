@@ -26,7 +26,6 @@ public class TestApplicationListener implements ApplicationListener<ContextRefre
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
         ApplicationContext context = event.getApplicationContext();
-        System.out.println("存储一份上下文信息");
         SpringStaticEnv.setApplicationContext(context); // 存储一份上下文信息
         Map<String, Object> routeAnnotation = context.getBeansWithAnnotation(RouteMapping.class);
 
@@ -45,14 +44,14 @@ public class TestApplicationListener implements ApplicationListener<ContextRefre
             if (!node.isNullChildNode())
                 Route.routeMap().put(key, node);
 
-
-            for (Method method : methods) {
-                Arrays.stream(method.getAnnotations()).forEach(System.out::println);
-                Type[] types = method.getParameterTypes();
-                for (Type type : types) {
-                    System.out.println(type.getTypeName());
-                }
-            }
+            // TODO delete 测试输出
+//            for (Method method : methods) {
+//                Arrays.stream(method.getAnnotations()).forEach(System.out::println);
+//                Type[] types = method.getParameterTypes();
+//                for (Type type : types) {
+//                    System.out.println(type.getTypeName());
+//                }
+//            }
         });
 
         System.out.println("ContextRefreshedEvent 触发。");

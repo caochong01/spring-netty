@@ -14,7 +14,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.core.env.Environment;
+import org.springframework.util.Assert;
 import org.springframework.util.StopWatch;
+import org.springframework.util.StringUtils;
 
 import java.net.InetSocketAddress;
 
@@ -43,51 +45,49 @@ public class SpringNettyApplication {
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
 
-        System.out.println("启动Netty服务和spring初始化容器");
+
+        stopWatch.stop();
+        stopWatch.prettyPrint();
+
+
+        /*****************************启动规划********************************/
+        // 读取application配置文件，并缓存 请查看 com.autumn.SpringNettyPropertySource
+
+        // 启动spring容器并初始化、注册Spring容器关闭钩子
+        log.debug("启动Netty服务和spring初始化容器");
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(
                 SpringNettyPropertySource.class, cls);
         context.registerShutdownHook();
 
-        stopWatch.stop();
-        System.out.println(context.getApplicationName());
+        // TODO delete 测试 Spring容器
+//        EventLoopGroup loopGroup = context.getBean(EventLoopGroup.class);
+//        Class<?> socketChannelClass = (Class<?>) context.getBean("serverSocketChannel");
+//        Object tRoute = context.getBean("testRoute");
+//
+//        System.out.println(loopGroup);
+//        System.out.println(socketChannelClass);
+//        System.out.println(tRoute);
 
-        // TODO 测试
-        EventLoopGroup loopGroup = context.getBean(EventLoopGroup.class);
-        Class<?> socketChannelClass = (Class<?>) context.getBean("serverSocketChannel");
-        Object tRoute = context.getBean("testRoute");
-
-        System.out.println(loopGroup);
-        System.out.println(socketChannelClass);
-        System.out.println(tRoute);
-
+        // 使用配置参数初始化Netty的外部配置值
         Environment environment = SpringStaticEnv.getENVIRONMENT();
-        String yml = environment.getProperty("json.config.yml");
-        System.out.println(yml);
+        String sPort = environment.getProperty("server.port");
+        int nettyPort = 8080;
+        if (!StringUtils.isEmpty(sPort)) {
+            nettyPort = Integer.parseInt(sPort);
+        }
+
         try {
-            start(8848);
+            start(nettyPort);
         } catch (InterruptedException e) {
             log.error("Netty 服务启动异常: " + e.getMessage());
             log.error("Netty 服务启动异常: ", e);
         }
 
+        // TODO 读取自定义注解，并组织好逻辑（过滤、路由、json格式化、异常处理、事务等功能）
 
-        /*****************************启动规划********************************/
-
-        // 读取application配置文件，并缓存
-
-        // 启动spring容器并初始化
-
-        // 使用配置参数初始化Netty的外部配置值
-
-        // 读取自定义注解，并组织好逻辑（过滤、路由、json格式化、异常处理、事务等功能）
-
-        // 将逻辑注入到Netty的channel中
-
-        // 注册Netty关闭钩子、spring容器关闭钩子；
+        // TODO 将逻辑注入到Netty的channel中
 
         // 完成。
-
-
     }
 
     private static void start(int port) throws InterruptedException {
@@ -96,6 +96,8 @@ public class SpringNettyApplication {
         // Configure the server.
         final EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         final EventLoopGroup workerGroup = new NioEventLoopGroup();
+
+        // 注册 Netty关闭钩子
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             bossGroup.shutdownGracefully().syncUninterruptibly();
             workerGroup.shutdownGracefully().syncUninterruptibly();
@@ -109,7 +111,7 @@ public class SpringNettyApplication {
             bootstrap.group(bossGroup, workerGroup)
                     .channel(NioServerSocketChannel.class)
                     .localAddress(new InetSocketAddress(port))
-//                .childOption(ChannelOption.TCP_NODELAY, true)
+//                    .childOption(ChannelOption.TCP_NODELAY, true)
                     .childHandler(new ChannelInitializer<SocketChannel>() {
 
                         @Override

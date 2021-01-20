@@ -1,7 +1,7 @@
 package com.autumn;
 
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+
 
 /**
  * 1. 扫描当前包
@@ -9,4 +9,5 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class SpringNettyConfig {
+
 }

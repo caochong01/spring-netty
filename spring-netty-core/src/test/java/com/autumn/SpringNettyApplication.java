@@ -1,17 +1,13 @@
 package com.autumn;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.http.HttpObjectAggregator;
-import io.netty.handler.codec.http.HttpServerCodec;
-import io.netty.handler.stream.ChunkedWriteHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.util.StopWatch;
@@ -91,8 +87,15 @@ public class SpringNettyApplication {
         final long sTime = System.currentTimeMillis();
         stopWatch.start("Netty start");
 
-        // Configure the server.
-        final EventLoopGroup bossGroup = new NioEventLoopGroup(1);
+        // Configure the server
+        ApplicationContext context = SpringStaticEnv.getApplicationContext();
+        EventLoopGroup bossG;
+        try {
+            bossG = context.getBean(EventLoopGroup.class);
+        } catch (NoSuchBeanDefinitionException e) {
+            bossG = new NioEventLoopGroup(1);
+        }
+        final EventLoopGroup bossGroup = bossG;
         final EventLoopGroup workerGroup = new NioEventLoopGroup();
 
         // 注册 Netty关闭钩子
@@ -107,26 +110,10 @@ public class SpringNettyApplication {
         try {
             ServerBootstrap bootstrap = new ServerBootstrap();
             bootstrap.group(bossGroup, workerGroup)
-                    .channel(NioServerSocketChannel.class)
+                    .channel(serverSocketChannel(bossGroup))
                     .localAddress(new InetSocketAddress(port))
 //                    .childOption(ChannelOption.TCP_NODELAY, true)
-                    .childHandler(new ChannelInitializer<SocketChannel>() {
-
-                        @Override
-                        protected void initChannel(SocketChannel ch) throws Exception {
-                            ch.pipeline()
-                                    .addLast(new HttpServerCodec())
-                                    // 把多个消息转换为一个单一的FullHttpRequest或是FullHttpResponse
-                                    .addLast(new HttpObjectAggregator(65536))
-                                    // 压缩Http消息
-                                    // .addLast(new HttpChunkContentCompressor())
-                                    // 大文件支持
-                                    .addLast(new ChunkedWriteHandler())
-
-                                    // 路由适配处理
-                                    .addLast();
-                        }
-                    });
+                    .childHandler(new DefaultChannelInitializerAdapter());
 
             /* 绑定到端口，sync()方法 阻塞等待直到连接完成 */
             final ChannelFuture future = bootstrap.bind().sync();
@@ -140,6 +127,14 @@ public class SpringNettyApplication {
         } finally {
             bossGroup.shutdownGracefully().sync();
             workerGroup.shutdownGracefully().sync();
+        }
+    }
+
+    private static Class<? extends ServerChannel> serverSocketChannel(EventLoopGroup eventLoopGroup) {
+        if (eventLoopGroup instanceof NioEventLoopGroup) {
+            return NioServerSocketChannel.class;
+        } else {
+            throw new ChannelException("NoFoundServerSocketChannelException");
         }
     }
 

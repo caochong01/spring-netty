@@ -1,5 +1,7 @@
-package com.autumn;
+package com.example;
 
+import com.autumn.RouteMapping;
+import com.example.TestBean;
 import org.springframework.stereotype.Controller;
 
 @Controller

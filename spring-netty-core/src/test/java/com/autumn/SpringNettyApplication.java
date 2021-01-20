@@ -14,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.core.env.Environment;
-import org.springframework.util.Assert;
 import org.springframework.util.StopWatch;
 import org.springframework.util.StringUtils;
 
@@ -26,6 +25,8 @@ import java.net.InetSocketAddress;
 public class SpringNettyApplication {
 
     private static final Logger log = LoggerFactory.getLogger(SpringNettyApplication.class);
+
+    private static final StopWatch stopWatch = new StopWatch();
 
     /**
      * 1. 加载application配置文件，启动spring容器，并初始化；
@@ -42,22 +43,17 @@ public class SpringNettyApplication {
      * 4. 主要在于handle的注入：（协议处理和动态注册器、拦截器、过滤器、路由选择器、处理类环切AOP[异常、事务]、真正处理类、Netty堆外内存销毁）
      */
     public static void run(Class<?> cls, String[] args) {
-        StopWatch stopWatch = new StopWatch();
-        stopWatch.start();
-
-
-        stopWatch.stop();
-        stopWatch.prettyPrint();
-
 
         /*****************************启动规划********************************/
         // 读取application配置文件，并缓存 请查看 com.autumn.SpringNettyPropertySource
 
         // 启动spring容器并初始化、注册Spring容器关闭钩子
         log.debug("启动Netty服务和spring初始化容器");
+        stopWatch.start("IOC init");
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(
                 SpringNettyPropertySource.class, cls);
         context.registerShutdownHook();
+        stopWatch.stop();
 
         // TODO delete 测试 Spring容器
 //        EventLoopGroup loopGroup = context.getBean(EventLoopGroup.class);
@@ -83,6 +79,7 @@ public class SpringNettyApplication {
             log.error("Netty 服务启动异常: ", e);
         }
 
+
         // TODO 读取自定义注解，并组织好逻辑（过滤、路由、json格式化、异常处理、事务等功能）
 
         // TODO 将逻辑注入到Netty的channel中
@@ -92,6 +89,7 @@ public class SpringNettyApplication {
 
     private static void start(int port) throws InterruptedException {
         final long sTime = System.currentTimeMillis();
+        stopWatch.start("Netty start");
 
         // Configure the server.
         final EventLoopGroup bossGroup = new NioEventLoopGroup(1);
@@ -132,6 +130,8 @@ public class SpringNettyApplication {
 
             /* 绑定到端口，sync()方法 阻塞等待直到连接完成 */
             final ChannelFuture future = bootstrap.bind().sync();
+            stopWatch.stop();
+            System.out.println(stopWatch.prettyPrint());
             log.info("***** Welcome To LoServer on port [{}], startting spend {}ms *****",
                     port, System.currentTimeMillis() - sTime);
 

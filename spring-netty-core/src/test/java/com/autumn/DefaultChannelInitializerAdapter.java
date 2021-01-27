@@ -1,5 +1,6 @@
 package com.autumn;
 
+import com.autumn.mode.SupportWay;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.channel.group.ChannelGroup;
@@ -25,22 +26,30 @@ public class DefaultChannelInitializerAdapter extends ChannelInitializer<SocketC
 
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
-        CorsConfig corsConfig = CorsConfigBuilder.forAnyOrigin().allowNullOrigin().allowCredentials().build();
-        ch.pipeline()
-                .addLast(new HttpServerCodec())
-                .addLast(new CorsHandler(corsConfig))
-                // 把多个消息转换为一个单一的FullHttpRequest或是FullHttpResponse
-                .addLast(new HttpObjectAggregator(65536))
-                // 长连接心跳
-                .addLast(new IdleStateHandler(3, 0, 0))
+        ChannelPipeline pipeline = ch.pipeline();
 
-                // 压缩Http消息
-                // .addLast(new HttpChunkContentCompressor())
-                // 大文件支持
-                .addLast(new ChunkedWriteHandler())
+        if ("http".equalsIgnoreCase(SupportWay.HTTP)) {
+            CorsConfig corsConfig = CorsConfigBuilder.forAnyOrigin().allowNullOrigin().allowCredentials().build();
+            pipeline.addLast(new HttpServerCodec())
+                    .addLast(new CorsHandler(corsConfig))
+                    // 把多个消息转换为一个单一的FullHttpRequest或是FullHttpResponse
+                    .addLast(new HttpObjectAggregator(65536))
+                    // 长连接心跳
+                    // .addLast(new IdleStateHandler(3, 0, 0))
 
-                // 路由适配处理
-                .addLast(new LongTcpInitializer());
+                    // 压缩Http消息
+                    // .addLast(new HttpChunkContentCompressor())
+                    // 大文件支持
+                    .addLast(new ChunkedWriteHandler());
+
+
+        }
+
+        // 路由适配处理
+        pipeline.addLast(new MappingHandleAdapter());
+
+        // 转发处理功能
+        pipeline.addLast(new HttpServerInitializer());
     }
 
 
@@ -148,6 +157,7 @@ public class DefaultChannelInitializerAdapter extends ChannelInitializer<SocketC
 
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+            System.out.println("channelRead");
             channelRead0(ctx, (FullHttpRequest) msg);
         }
 

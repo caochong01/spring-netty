@@ -6,8 +6,6 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
-import java.util.Arrays;
 import java.util.Map;
 
 /**
@@ -15,7 +13,7 @@ import java.util.Map;
  * 事件种类详见 @See {@link org.springframework.context.event.ApplicationContextEvent} 的实现子类
  */
 @Component
-public class TestApplicationListener implements ApplicationListener<ContextRefreshedEvent> {
+public class MappingApplicationListener implements ApplicationListener<ContextRefreshedEvent> {
 
 
     /**

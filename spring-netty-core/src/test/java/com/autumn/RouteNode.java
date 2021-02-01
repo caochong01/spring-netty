@@ -59,6 +59,10 @@ public class RouteNode {
         this.classBean = classBean;
     }
 
+    public boolean isClass() {
+        return isClass;
+    }
+
     public String getPath() {
         return path;
     }
@@ -101,5 +105,18 @@ public class RouteNode {
 
     public boolean isNullChildNode() {
         return this.childNode.isEmpty();
+    }
+
+
+    @Override
+    public String toString() {
+        return "RouteNode{" +
+                "isClass=" + isClass +
+                ", path='" + path + '\'' +
+                ", routeMapping=" + routeMapping +
+                ", method=" + method +
+                ", classBean=" + classBean +
+                ", childNode=" + childNode +
+                '}';
     }
 }

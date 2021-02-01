@@ -1,5 +1,6 @@
 package com.autumn;
 
+import com.autumn.mode.RequestMethod;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.stereotype.Component;
 
@@ -17,5 +18,9 @@ public @interface RouteMapping {
 
     @AliasFor(annotation = Component.class)
     String value();
+
+    @AliasFor(annotation = Component.class)
+    RequestMethod[] method() default {};
+
 }
 

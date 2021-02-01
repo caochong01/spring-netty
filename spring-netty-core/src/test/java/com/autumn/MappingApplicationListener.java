@@ -6,6 +6,8 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.Map;
 
 /**
@@ -43,13 +45,13 @@ public class MappingApplicationListener implements ApplicationListener<ContextRe
                 Route.routeMap().put(key, node);
 
             // TODO delete 测试输出
-//            for (Method method : methods) {
-//                Arrays.stream(method.getAnnotations()).forEach(System.out::println);
-//                Type[] types = method.getParameterTypes();
-//                for (Type type : types) {
-//                    System.out.println(type.getTypeName());
-//                }
-//            }
+            for (Method method : methods) {
+                Arrays.stream(method.getAnnotations()).forEach(System.out::println);
+                Type[] types = method.getParameterTypes();
+                for (Type type : types) {
+                    System.out.println(type.getTypeName());
+                }
+            }
         });
 
         System.out.println("ContextRefreshedEvent 触发。");

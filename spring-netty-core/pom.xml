@@ -26,6 +26,12 @@
             <artifactId>spring-context</artifactId>
         </dependency>
 
+        <!--        <dependency>-->
+        <!--            <groupId>io.restx</groupId>-->
+        <!--            <artifactId>restx-core</artifactId>-->
+        <!--            <version>0.35.1</version>-->
+        <!--        </dependency>-->
+
         <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>

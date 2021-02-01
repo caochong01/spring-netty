@@ -49,7 +49,7 @@ public class DefaultChannelInitializerAdapter extends ChannelInitializer<SocketC
         pipeline.addLast(new MappingHandleAdapter());
 
         // 转发处理功能
-        pipeline.addLast(new HttpServerInitializer());
+        // pipeline.addLast(new HttpServerInitializer());
     }
 
 
@@ -232,4 +232,5 @@ public class DefaultChannelInitializerAdapter extends ChannelInitializer<SocketC
             super.handlerRemoved(ctx);
         }
     }
+
 }

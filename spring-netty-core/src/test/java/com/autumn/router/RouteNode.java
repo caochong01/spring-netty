@@ -1,67 +1,121 @@
 package com.autumn.router;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * 压缩字典树，简略版
  */
-public class RouteNode {
+public class RouteNode<T> {
 
-    private static final Node RootNode = new Node("");
+    private static final Logger log = LoggerFactory.getLogger(RouteNode.class);
 
-    public void add(String path) {
+    private final Node<T> RootNode = new Node<>("", NodeType.ROOT);
+
+    public void add(String path, T obj) {
         String[] split = path.split("/");
-        Node node = RootNode;
-        for (String s : split) {
-            if (node.tail.get(s) == null) {
-                node.tail.put(s, new Node(s));
+        Node<T> node = RootNode;
+        for (int i = 0; i < split.length; i++) {
+            String s = split[i];
+            if (i == (split.length - 1)) {
+                if (node.tail.get(s) != null) {
+                    log.warn("路由节点（" + node.tail.get(s).nodePath + "）被重置为: " + path);
+                }
+                node.tail.put(s, new Node<>(s, NodeType.Method, obj)); // 插入带数据的节点 或 更新PASS节点
+            } else if (node.tail.get(s) == null) {
+                node.tail.put(s, new Node<>(s, NodeType.PASS));
             }
             node = node.tail.get(s);
         }
-
-
     }
 
-    public static void main(String[] args) {
-        RouteNode routeNode = new RouteNode();
-        routeNode.add("test/123/asd");
-        routeNode.add("test/zxc");
-        System.out.println(RootNode.toString());
+    public T findNode(String path) {
+        String[] split = path.split("/");
+        Node<T> node = RootNode;
+        for (String s : split) {
+            node = node.tail.get(s);
+            if (node == null) {
+                break;
+            }
+            if (!node.nodePath.equals(s) || node.nodeType.equals(NodeType.ROOT)) {
+                break;
+            }
+        }
+        if (node != null && !node.nodeType.equals(NodeType.ROOT)) { // 找到所要的数据
+            return node.obj;
+        }
+        return RootNode.obj;
     }
 
+//    public static void main(String[] args) {
+//
+//        RouteNode<Routing> routeNode = new RouteNode<>();
+//        System.out.println(routeNode.findNode("test/123/asd"));
+//        System.out.println(routeNode.findNode("test/zxc"));
+//        System.out.println(routeNode.RootNode.toString());
+//    }
 
-    static class Node {
-        String path;
-        Map<String, Node> tail = new HashMap<>(2);
 
-        public Node() {
+    enum NodeType {
+        ROOT, Method, PASS;
+    }
+
+    static class Node<T> {
+
+        String nodePath; // 节点路径
+        NodeType nodeType; // 节点类型
+        T obj; // 节点数据
+        Map<String, Node<T>> tail = new HashMap<>(2);
+
+        public Node(String nodePath, NodeType nodeType) {
+            this(nodePath, nodeType, null);
         }
 
-        public Node(String path) {
-            this.path = path;
+        public Node(String nodePath, NodeType nodeType, T obj) {
+            this.nodePath = nodePath;
+            this.nodeType = nodeType;
+            this.obj = obj;
         }
 
-        public Map<String, Node> getTail() {
+        public Map<String, Node<T>> getTail() {
             return tail;
         }
 
-        public void setTail(Map<String, Node> tail) {
+        public void setTail(Map<String, Node<T>> tail) {
             this.tail = tail;
         }
 
-        public void setPath(String path) {
-            this.path = path;
+        public T getObj() {
+            return obj;
         }
 
-        public String getPath() {
-            return path;
+        public void setObj(T obj) {
+            this.obj = obj;
+        }
+
+        public String getNodePath() {
+            return nodePath;
+        }
+
+        public void setNodePath(String nodePath) {
+            this.nodePath = nodePath;
+        }
+
+        public NodeType getNodeType() {
+            return nodeType;
+        }
+
+        public void setNodeType(NodeType nodeType) {
+            this.nodeType = nodeType;
         }
 
         @Override
         public String toString() {
             return "{" +
-                    "\"path\": \"" + path + "\"" +
+                    "\"nodePath\": \"" + nodePath + "\"" +
                     ", \"tail\": " + tail +
                     '}';
         }

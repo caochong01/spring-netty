@@ -13,13 +13,10 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Mapping
-@Component
 public @interface RouteMapping {
 
-    @AliasFor(annotation = Component.class)
     String value();
 
-    @AliasFor(annotation = Component.class)
     RequestMethod[] method() default {};
 
 }

@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * 路由对象
  */
+@Deprecated
 public class RouteNode {
 
 

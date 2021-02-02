@@ -1,11 +1,11 @@
 package com.example;
 
 import com.autumn.RouteMapping;
-import com.example.TestBean;
-import org.springframework.stereotype.Controller;
+import com.autumn.mode.RequestMethod;
+import com.autumn.router.NettyController;
 
-@Controller
-@RouteMapping("/testControl")
+@NettyController
+@RouteMapping(value = "/testControl", method = {RequestMethod.GET, RequestMethod.POST})
 public class TestController {
 
     @RouteMapping("/r0")
@@ -13,7 +13,7 @@ public class TestController {
         return "00";
     }
 
-    @RouteMapping("/r1")
+    @RouteMapping(value = "/r1", method = {RequestMethod.POST, RequestMethod.PUT})
     public String route1(Integer code) {
         return "11";
     }

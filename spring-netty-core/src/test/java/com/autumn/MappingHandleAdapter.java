@@ -77,23 +77,23 @@ public class MappingHandleAdapter extends SimpleChannelInboundHandler<FullHttpRe
             System.out.println(uri + " " + method + " " + httpVersion);
             System.out.println(headers);
 
-            RouteNode routeNode = Route.routeMap().get(uri);
-            if (routeNode == null) {
-                ctx.writeAndFlush(null).addListener(ChannelFutureListener.CLOSE);
-                return null;
-            }
-            System.out.println(routeNode.toString());
-
-            RouteMapping routeAttr = routeNode.getRoute();
-
-            RequestMethod[] requestMethods = routeAttr.method();
-            if (requestMethods.length > 0) {
-
-            }
-
-            while (!routeNode.isNullChildNode() && routeNode.isClass()) {
-                routeAttr.value();
-            }
+//            RouteNode routeNode = RouterManager.routeMap().add(uri);
+//            if (routeNode == null) {
+//                ctx.writeAndFlush(null).addListener(ChannelFutureListener.CLOSE);
+//                return null;
+//            }
+//            System.out.println(routeNode.toString());
+//
+//            RouteMapping routeAttr = routeNode.getRoute();
+//
+//            RequestMethod[] requestMethods = routeAttr.method();
+//            if (requestMethods.length > 0) {
+//
+//            }
+//
+//            while (!routeNode.isNullChildNode() && routeNode.isClass()) {
+//                routeAttr.value();
+//            }
 
             return null;
         }

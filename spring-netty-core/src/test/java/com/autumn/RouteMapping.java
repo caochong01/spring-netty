@@ -1,8 +1,7 @@
 package com.autumn;
 
+import com.autumn.mode.Mapping;
 import com.autumn.mode.RequestMethod;
-import org.springframework.core.annotation.AliasFor;
-import org.springframework.stereotype.Component;
 
 import java.lang.annotation.*;
 

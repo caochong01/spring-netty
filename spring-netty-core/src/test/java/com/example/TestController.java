@@ -2,7 +2,7 @@ package com.example;
 
 import com.autumn.RouteMapping;
 import com.autumn.mode.RequestMethod;
-import com.autumn.router.NettyController;
+import com.autumn.NettyController;
 
 @NettyController
 @RouteMapping(value = "/testControl/123", method = {RequestMethod.GET, RequestMethod.POST})

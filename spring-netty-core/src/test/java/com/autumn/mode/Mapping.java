@@ -1,4 +1,4 @@
-package com.autumn;
+package com.autumn.mode;
 
 import java.lang.annotation.*;
 

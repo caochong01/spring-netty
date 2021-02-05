@@ -1,13 +1,10 @@
-package com.autumn;
+package com.autumn.router;
 
-import com.autumn.router.RouteNode;
-import com.autumn.router.Routed;
-import com.autumn.router.Routing;
+import com.autumn.mode.RequestMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 /**
@@ -48,19 +45,16 @@ public class RouterManager {
                 isDynamic = true;
             }
             routeMap.add(path, obj);
-            System.out.println("MEthod: " + isDynamic + " " +
+            log.debug("MEthod: " + isDynamic + " " +
                     path + " " + obj.toString());
         }
         return this;
     }
 
-    // 缓存动态节点
-    private static final Map<Integer, Map<String, RouteNode.Node<Routing>>> nodeCache = new ConcurrentHashMap<>();
-
     /**
      * 正向路由查找管理
      */
-    public Routed<Routing> route(String path) {
+    public Routed<Routing> route(RequestMethod requestMethod, String path) {
         log.debug("正在解析路由：" + path);
 
         Map<String, String> params = new HashMap<>();
@@ -110,6 +104,21 @@ public class RouterManager {
 
             return null;
         });
+
+        if (routing != null) {
+            // 拦截不设置的情况下是否有配置可通过
+            if (false && routing.getRequestMethod().length == 0) {
+                // TODO 拦截不设置的情况下是否有配置可通过,目前都通过
+                System.out.println("未检索到可用 RequestMethod");
+            }
+
+            // 拦截Method不匹配
+            if (!Arrays.asList(routing.getRequestMethod()).contains(requestMethod)){
+                // TODO 拦截Method不匹配
+                return new Routed<>(null, true, null);
+            }
+        }
+
 
         // TODO 如果没有找到，则执行没有找到路径的程序（类似于404返回）
         return new Routed<>(routing, routing == null, params);

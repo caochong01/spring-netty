@@ -1,10 +1,7 @@
 package com.autumn;
 
 import com.autumn.mode.RequestMethod;
-import com.autumn.router.NettyController;
-import com.autumn.router.RouteNode;
-import com.autumn.router.Routed;
-import com.autumn.router.Routing;
+import com.autumn.router.*;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -73,8 +70,10 @@ public class MappingApplicationListener implements ApplicationListener<ContextRe
                 }
             }
         });
+
+        // 测试代码 delete
         RouterManager routerManager = RouterManager.manager();
-        Routed<Routing> route = routerManager.route("/testControl/123//789/r1");
+        Routed<Routing> route = routerManager.route(RequestMethod.parseOf("GET"), "/testControl/123//789/r1");
         System.out.println(route);
 
 

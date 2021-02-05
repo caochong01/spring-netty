@@ -1,6 +1,5 @@
 package com.autumn.router;
 
-import com.autumn.RouterManager;
 import com.autumn.mode.RequestMethod;
 
 /**

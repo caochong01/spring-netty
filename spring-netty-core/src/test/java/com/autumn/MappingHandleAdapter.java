@@ -1,6 +1,9 @@
 package com.autumn;
 
 import com.autumn.mode.RequestMethod;
+import com.autumn.router.Routed;
+import com.autumn.router.RouterManager;
+import com.autumn.router.Routing;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
@@ -40,10 +43,12 @@ public class MappingHandleAdapter extends SimpleChannelInboundHandler<FullHttpRe
          * 5. 执行后置拦截器、过滤器（可扩展）出口过滤
          */
         HttpMappingHandler.beforeHandel(ctx, request);
-        HttpMappingHandler.checkMethods(ctx, request); // 理论上需要返回一个封装，供下一步使用
+        Routed<Routing> routed = HttpMappingHandler.checkMethods(ctx, request);// 理论上需要返回一个封装，供下一步使用
+        if (routed == null || routed.notFound()) {
+            HttpMappingHandler.afterHandel(ctx, request, "请求找不到");
+            return;
+        }
         HttpMappingHandler.doAction(ctx, request);
-        HttpMappingHandler.afterHandel(ctx, request);
-
     }
 
     static class HttpMappingHandler {
@@ -53,19 +58,10 @@ public class MappingHandleAdapter extends SimpleChannelInboundHandler<FullHttpRe
         }
 
         public static void doAction(ChannelHandlerContext ctx, FullHttpRequest request) {
-            // 创建http响应
-            FullHttpResponse response = new DefaultFullHttpResponse(
-                    HttpVersion.HTTP_1_1,
-                    HttpResponseStatus.OK,
-                    Unpooled.copiedBuffer("请求完成", CharsetUtil.UTF_8));
-            // 设置头信息
-            response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=UTF-8");
-            //response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=UTF-8");
-            // 将html write到客户端
-            ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+            HttpMappingHandler.afterHandel(ctx, request, "请求完成");
         }
 
-        public static Object checkMethods(ChannelHandlerContext ctx, FullHttpRequest request) {
+        public static Routed<Routing> checkMethods(ChannelHandlerContext ctx, FullHttpRequest request) {
             /**
              * 1. 检查方法注解的请求类型（GET、POST等）
              * 2. 检查方法的参数注解等 TODO 暂时先不做
@@ -76,6 +72,10 @@ public class MappingHandleAdapter extends SimpleChannelInboundHandler<FullHttpRe
             HttpVersion httpVersion = request.protocolVersion();
             System.out.println(uri + " " + method + " " + httpVersion);
             System.out.println(headers);
+            RouterManager routerManager = RouterManager.manager();
+            Routed<Routing> routed = routerManager.route(RequestMethod.parseOf(method.name()), uri);
+            System.out.println(routed);
+            return routed;
 
 //            RouteNode routeNode = RouterManager.routeMap().add(uri);
 //            if (routeNode == null) {
@@ -94,12 +94,19 @@ public class MappingHandleAdapter extends SimpleChannelInboundHandler<FullHttpRe
 //            while (!routeNode.isNullChildNode() && routeNode.isClass()) {
 //                routeAttr.value();
 //            }
-
-            return null;
         }
 
-        public static void afterHandel(ChannelHandlerContext ctx, FullHttpRequest request) {
-
+        public static void afterHandel(ChannelHandlerContext ctx, FullHttpRequest request, CharSequence string) {
+            // 创建http响应
+            FullHttpResponse response = new DefaultFullHttpResponse(
+                    HttpVersion.HTTP_1_1,
+                    HttpResponseStatus.OK,
+                    Unpooled.copiedBuffer(string, CharsetUtil.UTF_8));
+            // 设置头信息
+            response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=UTF-8");
+            //response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=UTF-8");
+            // 将html write到客户端
+            ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
         }
     }
 

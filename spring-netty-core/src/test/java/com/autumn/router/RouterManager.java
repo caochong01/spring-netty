@@ -167,7 +167,7 @@ public class RouterManager {
     }
 
     private boolean matchParams(String[] currTokens, String[] tokens, Map<String, String> params) {
-        for (int i = 0; i < currTokens.length - 1; i++) {
+        for (int i = 0; i < currTokens.length; i++) {
             final String token = tokens[i];
             final String currToken = currTokens[i];
 

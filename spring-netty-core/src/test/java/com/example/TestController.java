@@ -5,7 +5,7 @@ import com.autumn.mode.RequestMethod;
 import com.autumn.NettyController;
 
 @NettyController
-@RouteMapping(value = "/testControl/123", method = {RequestMethod.GET, RequestMethod.POST})
+@RouteMapping(value = "/testControl", method = {RequestMethod.GET, RequestMethod.POST})
 public class TestController {
 
     @RouteMapping("/r0")

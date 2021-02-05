@@ -21,7 +21,7 @@ public class RouteNode<T> {
     }
 
     public void add(String path, T obj) {
-        String[] split = path.split("/");
+        String[] split = Routing.removeSlashRetainOnlyOne(path).split("/");
         Node<T> node = RootNode;
         for (int i = 0; i < split.length; i++) {
             String s = split[i];
@@ -38,7 +38,7 @@ public class RouteNode<T> {
     }
 
     public T findNode(String path) {
-        String[] split = path.split("/");
+        String[] split = Routing.removeSlashRetainOnlyOne(path).split("/");
         Node<T> node = RootNode;
         for (String s : split) {
             node = node.tail.get(s);

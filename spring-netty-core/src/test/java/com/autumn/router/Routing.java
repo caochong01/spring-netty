@@ -4,7 +4,9 @@ import com.autumn.mode.RequestMethod;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * 路由器的基础对象，包含设置等信息
@@ -41,7 +43,7 @@ public class Routing {
         if (pathFun != null) {
             this.path = pathFun.apply(path);
         } else {
-            this.path = removeSlashAtBothEnds(path);
+            this.path = removeSlashRetainOnlyOne(path);
         }
         this.tokens = this.path.split("/"); // TODO 优化
         this.method = method;
@@ -89,17 +91,14 @@ public class Routing {
         this.classBean = classBean;
     }
 
-    public static String removeSlashAtBothEnds(String path) {
-        if (path.isEmpty()) return path;
+    public static String removeSlashRetainOnlyOne(String path) {
+        if (path.isEmpty())
+            return "";
 
-        int beginIndex = 0;
-        while (beginIndex < path.length() && path.charAt(beginIndex) == '/') beginIndex++;
-        if (beginIndex == path.length()) return "";
-
-        int endIndex = path.length() - 1;
-        while (endIndex > beginIndex && path.charAt(endIndex) == '/') endIndex--;
-
-        return path.substring(beginIndex, endIndex + 1);
+        final String STR = "/";
+        String[] split = path.split(STR);
+        return Arrays.stream(split).filter(str -> str.length() > 0)
+                .collect(Collectors.joining(STR));
     }
 
     @Override

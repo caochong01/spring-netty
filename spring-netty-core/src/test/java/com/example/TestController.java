@@ -5,7 +5,7 @@ import com.autumn.mode.RequestMethod;
 import com.autumn.router.NettyController;
 
 @NettyController
-@RouteMapping(value = "/testControl", method = {RequestMethod.GET, RequestMethod.POST})
+@RouteMapping(value = "/testControl/123", method = {RequestMethod.GET, RequestMethod.POST})
 public class TestController {
 
     @RouteMapping("/r0")
@@ -13,12 +13,12 @@ public class TestController {
         return "00";
     }
 
-    @RouteMapping(value = "/r1", method = {RequestMethod.POST, RequestMethod.PUT})
+    @RouteMapping(value = "//:id/r1", method = {RequestMethod.POST, RequestMethod.PUT})
     public String route1(Integer code) {
         return "11";
     }
 
-    @RouteMapping("/r2")
+    @RouteMapping("/r2///:name")
     public String route2(String s, TestBean testBean) {
         return "22";
     }

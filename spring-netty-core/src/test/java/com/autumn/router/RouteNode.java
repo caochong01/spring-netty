@@ -5,15 +5,20 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
- * 压缩字典树，简略版
+ * 压缩字典树，简略版, 只负责节点的CRUD
  */
 public class RouteNode<T> {
 
     private static final Logger log = LoggerFactory.getLogger(RouteNode.class);
 
     private final Node<T> RootNode = new Node<>("", NodeType.ROOT);
+
+    public Node<T> getRootNode() {
+        return RootNode;
+    }
 
     public void add(String path, T obj) {
         String[] split = path.split("/");
@@ -50,6 +55,11 @@ public class RouteNode<T> {
         return RootNode.obj;
     }
 
+    public T findNode(String path, Function<String, T> func) {
+        return func.apply(path);
+    }
+
+
 //    public static void main(String[] args) {
 //
 //        RouteNode<Routing> routeNode = new RouteNode<>();
@@ -59,11 +69,11 @@ public class RouteNode<T> {
 //    }
 
 
-    enum NodeType {
+    public enum NodeType {
         ROOT, Method, PASS;
     }
 
-    static class Node<T> {
+    public static class Node<T> {
 
         String nodePath; // 节点路径
         NodeType nodeType; // 节点类型

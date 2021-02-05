@@ -3,6 +3,7 @@ package com.autumn;
 import com.autumn.mode.RequestMethod;
 import com.autumn.router.NettyController;
 import com.autumn.router.RouteNode;
+import com.autumn.router.Routed;
 import com.autumn.router.Routing;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
@@ -64,15 +65,17 @@ public class MappingApplicationListener implements ApplicationListener<ContextRe
                     String routeName = classRouteName + methodRouteName;
                     RequestMethod[] requestMethods = concat(classSuppotMethods, methodSuppotMethods);
 
-                    System.out.println("MEthod: " + nck + " " +
-                            routeName + " " + Arrays.toString(requestMethods));
+//                    System.out.println("MEthod: " + nck + " " +
+//                            routeName + " " + Arrays.toString(requestMethods));
 
                     Routing routing = new Routing(routeName, method, requestMethods, ncvClass);
-                    RouterManager.routeMap().add(routeName, routing);
+                    RouterManager.manager().pattern(routeName, routing);
                 }
             }
         });
-        RouteNode<Routing> routingRouteNode = RouterManager.routeMap();
+        RouterManager routerManager = RouterManager.manager();
+        Routed<Routing> route = routerManager.route("/testControl/123//789/r1");
+        System.out.println(route);
 
 
 //        Map<String, Object> routeAnnotation = context.getBeansWithAnnotation(RouteMapping.class);

@@ -1,6 +1,6 @@
 package com.example;
 
-import com.autumn.RouteMapping;
+import com.autumn.annotation.RouteMapping;
 import com.autumn.SpringStaticEnv;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

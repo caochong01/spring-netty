@@ -1,4 +1,4 @@
-package com.autumn;
+package com.autumn.annotation;
 
 import org.springframework.stereotype.Component;
 

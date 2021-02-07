@@ -1,9 +1,9 @@
 package com.example;
 
-import com.autumn.RouteMapping;
+import com.autumn.annotation.RouteMapping;
 import com.autumn.annotation.PathVariable;
 import com.autumn.mode.RequestMethod;
-import com.autumn.NettyController;
+import com.autumn.annotation.NettyController;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 

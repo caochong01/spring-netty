@@ -6,13 +6,14 @@ import com.autumn.router.Routed;
 import com.autumn.router.RouterManager;
 import com.autumn.router.Routing;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.*;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
-import java.util.Arrays;
 
 public class MappingHandleAdapter extends SimpleChannelInboundHandler<FullHttpRequest> {
 

@@ -1,6 +1,6 @@
-package com.autumn;
+package com.autumn.annotation;
 
-import com.autumn.mode.Mapping;
+import com.autumn.annotation.Mapping;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.stereotype.Controller;
 

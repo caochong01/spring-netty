@@ -62,20 +62,17 @@ public class MappingApplicationListener implements ApplicationListener<ContextRe
                     String routeName = classRouteName + methodRouteName;
                     RequestMethod[] requestMethods = concat(classSuppotMethods, methodSuppotMethods);
 
-//                    System.out.println("MEthod: " + nck + " " +
-//                            routeName + " " + Arrays.toString(requestMethods));
-
-                    Routing routing = new Routing(routeName, method, requestMethods, ncvClass);
+                    Routing routing = new Routing(routeName, method,
+                            requestMethods, context.getBean(ncvClass));
                     RouterManager.manager().pattern(routeName, routing);
                 }
             }
         });
 
         // 测试代码 delete
-        RouterManager routerManager = RouterManager.manager();
-        Routed<Routing> route = routerManager.route(RequestMethod.parseOf("GET"), "/testControl/123//789/r1");
-        System.out.println(route);
-
+//        RouterManager routerManager = RouterManager.manager();
+//        Routed<Routing> routed = routerManager.route(RequestMethod.parseOf("GET"), "/testControl/123//789/r1");
+//        System.out.println(routed);
 
 //        Map<String, Object> routeAnnotation = context.getBeansWithAnnotation(RouteMapping.class);
 //

@@ -1,5 +1,6 @@
 package com.autumn;
 
+import com.autumn.annotation.PathVariable;
 import com.autumn.mode.RequestMethod;
 import com.autumn.router.Routed;
 import com.autumn.router.RouterManager;
@@ -8,6 +9,10 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.*;
+import java.util.Arrays;
 
 public class MappingHandleAdapter extends SimpleChannelInboundHandler<FullHttpRequest> {
 
@@ -61,7 +66,11 @@ public class MappingHandleAdapter extends SimpleChannelInboundHandler<FullHttpRe
             HttpMappingHandler.afterHandel(ctx, request, "请求完成");
         }
 
-        public static Routed<Routing> checkMethods(ChannelHandlerContext ctx, FullHttpRequest request) {
+        public static Routed<Routing> checkMethods(
+                ChannelHandlerContext ctx,
+                FullHttpRequest request)
+                throws InvocationTargetException,
+                IllegalAccessException, NoSuchMethodException {
             /**
              * 1. 检查方法注解的请求类型（GET、POST等）
              * 2. 检查方法的参数注解等 TODO 暂时先不做
@@ -75,6 +84,64 @@ public class MappingHandleAdapter extends SimpleChannelInboundHandler<FullHttpRe
             RouterManager routerManager = RouterManager.manager();
             Routed<Routing> routed = routerManager.route(RequestMethod.parseOf(method.name()), uri);
             System.out.println(routed);
+
+            if (routed != null && routed.target() != null) {
+                Method r_method = routed.target().getMethod();
+
+                Class<?> returnType = r_method.getReturnType();
+                System.out.println("返回类型: " + returnType);
+                Class<?>[] exceptionTypes = r_method.getExceptionTypes();
+                for (Type exceptionType : exceptionTypes) {
+                    System.out.println("异常类型: " + exceptionType);
+                }
+
+                /**
+                 * 1. 获取执行方法、具体实例化对象、参数类型、结果类型等；
+                 * 2. 根据参数类型，填充默认参数类型（request、response）和映射类型，映射类型找不到则默认为Null；
+                 * 3. 执行invoke方法，完成返回
+                 */
+
+                Class<?>[] parameterTypes = r_method.getParameterTypes();
+                Annotation[][] parameterAnnotations = routed.target().getParameterAnnotations();
+                Object[] parameter = new Object[parameterTypes.length];
+
+                for (int i = 0; i < parameterTypes.length; i++) {
+                    Class<?> parameterType = parameterTypes[i];
+                    Annotation[] parameterAnnotation = parameterAnnotations[i];
+
+                    // TODO 此处以后应该采用类似于适配器模式的方式，
+                    // TODO 对不同的类型适配不同的解析，此模块应该单列出来。
+
+                    // 默认填充初始化及判断
+                    if (HttpRequest.class.isAssignableFrom(parameterType)) {
+                        System.out.println("HttpRequest.class.isAssignableFrom == " + true);
+                        parameter[i] = request;
+                    } else if (HttpResponse.class.isAssignableFrom(parameterType)) {
+                        System.out.println("HttpResponse.class.isAssignableFrom == " + true);
+                        parameter[i] = new DefaultFullHttpResponse(
+                                HttpVersion.HTTP_1_1,
+                                HttpResponseStatus.OK);
+                    } else { // TODO 参数类型解析
+                        // 入口参数映射
+                        parameter[i] = null; // 默认为空
+
+                        for (Annotation p_annotation : parameterAnnotation) {
+                            // TODO 形参注解解析，此处也可以适配扩展
+                            if (PathVariable.class.equals(p_annotation.annotationType())) { // 对PathVariable注解的解析
+                                Method required = p_annotation.annotationType().getDeclaredMethod("value");
+                                Object rPathVal = required.invoke(p_annotation);
+                                // TODO url入参类型和形参类型的校验， 可以暂时不做
+                                parameter[i] = routed.params().get(rPathVal.toString());
+                            }
+                        }
+                    }
+                }
+
+                Object invoke = r_method.invoke(routed.target().getClassBean(), parameter);
+                System.out.println("执行结果: " + invoke);
+
+            }
+
             return routed;
 
 //            RouteNode routeNode = RouterManager.routeMap().add(uri);

@@ -2,6 +2,7 @@ package com.autumn.router;
 
 import com.autumn.mode.RequestMethod;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.function.Function;
@@ -12,6 +13,7 @@ import java.util.stream.Collectors;
  */
 public class Routing {
 
+
     protected String path; // 记录的路由地址
 
     protected String[] tokens; // 参数值
@@ -21,6 +23,8 @@ public class Routing {
     protected Method method; // 反射的方法信息
 
     protected Object classBean; // 原始spring bean对象
+
+    protected Annotation[][] parameterAnnotations; // 原始的方法形参注解
 
 //    public Routing() {
 //    }
@@ -48,6 +52,7 @@ public class Routing {
         this.method = method;
         this.requestMethod = requestMethod;
         this.classBean = classBean;
+        this.parameterAnnotations = this.method.getParameterAnnotations();
     }
 
     public String[] getTokens() {
@@ -88,6 +93,10 @@ public class Routing {
 
     public void setClassBean(Object classBean) {
         this.classBean = classBean;
+    }
+
+    public Annotation[][] getParameterAnnotations() {
+        return parameterAnnotations;
     }
 
     public static String removeSlashRetainOnlyOne(String path) {

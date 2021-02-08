@@ -57,7 +57,7 @@ public class RouterManager {
     public Routed<Routing> route(RequestMethod requestMethod, String path) {
         log.debug("正在解析路由：" + path);
 
-        Map<String, String> params = new HashMap<>();
+        Map<String, Object> params = new HashMap<>();
         Routing routing = routeMap.findNode(path, uri -> {
             final String[] split = Routing.removeSlashRetainOnlyOne(uri).split("/");
 
@@ -113,7 +113,7 @@ public class RouterManager {
             }
 
             // 拦截Method不匹配
-            if (!Arrays.asList(routing.getRequestMethod()).contains(requestMethod)){
+            if (!Arrays.asList(routing.getRequestMethod()).contains(requestMethod)) {
                 // TODO 拦截Method不匹配
                 return new Routed<>(null, true, null);
             }
@@ -125,13 +125,13 @@ public class RouterManager {
     }
 
     private Routed<Routing> dynamicRoute(String[] tokens) {
-        final Map<String, String> params = new HashMap<>();
+        final Map<String, Object> params = new HashMap<>();
         Routing routing = dynamicRoute(tokens, params);
         // TODO 如果没有找到，则执行没有找到路径的程序（类似于404返回）
         return new Routed<>(routing, routing == null, params);
     }
 
-    private Routing dynamicRoute(String[] tokens, Map<String, String> params) {
+    private Routing dynamicRoute(String[] tokens, Map<String, Object> params) {
 
         for (Routing routing : dynamicRoutings) {
             final String[] currTokens = routing.getTokens();
@@ -166,7 +166,7 @@ public class RouterManager {
         return null;
     }
 
-    private boolean matchParams(String[] currTokens, String[] tokens, Map<String, String> params) {
+    private boolean matchParams(String[] currTokens, String[] tokens, Map<String, Object> params) {
         for (int i = 0; i < currTokens.length; i++) {
             final String token = tokens[i];
             final String currToken = currTokens[i];

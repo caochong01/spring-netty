@@ -27,4 +27,9 @@ public class TestController {
         return "22";
     }
 
+    @RouteMapping(value = "/r3/:id")
+    public void route3(@PathVariable("id") Integer code) {
+        System.out.println("我确实执行了，但我不返回" + code);
+    }
+
 }

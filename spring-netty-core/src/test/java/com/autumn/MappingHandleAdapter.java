@@ -1,6 +1,8 @@
 package com.autumn;
 
 import com.autumn.annotation.PathVariable;
+import com.autumn.httpMapping.HttpContext;
+import com.autumn.httpMapping.SimpleHttpResponse;
 import com.autumn.mode.RequestMethod;
 import com.autumn.router.Routed;
 import com.autumn.router.RouterManager;
@@ -10,7 +12,6 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
-import io.netty.util.CharsetUtil;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
@@ -48,30 +49,45 @@ public class MappingHandleAdapter extends SimpleChannelInboundHandler<FullHttpRe
          * 4. 响应解释器（主要对响应内容转换）
          * 5. 执行后置拦截器、过滤器（可扩展）出口过滤
          */
-        HttpMappingHandler.beforeHandel(ctx, request);
-        Routed<Routing> routed = HttpMappingHandler.checkMethods(ctx, request);// 理论上需要返回一个封装，供下一步使用
-        if (routed == null || routed.notFound()) {
-            HttpMappingHandler.afterHandel(ctx, request, "请求找不到");
-            return;
-        }
-        HttpMappingHandler.doAction(ctx, request);
+        HttpContext httpContext = new HttpContext();
+        httpContext.setHttpRequest(request);
+        HttpMappingHandler.beforeHandel(ctx, httpContext, request);
+        Object result = HttpMappingHandler.doAction(ctx, httpContext, request);// 理论上需要返回一个封装，供下一步使用
+        HttpMappingHandler.afterHandel(ctx, httpContext, request, result);
     }
 
     static class HttpMappingHandler {
 
-        public static void beforeHandel(ChannelHandlerContext ctx, FullHttpRequest request) {
+        public static void beforeHandel(ChannelHandlerContext ctx,
+                                        HttpContext httpContext,
+                                        FullHttpRequest request) {
+            // 创建http响应
+            SimpleHttpResponse response = new SimpleHttpResponse(
+                    HttpVersion.HTTP_1_1,
+                    HttpResponseStatus.OK);
+            // TODO 请求头的一些初始化操作等
+            // 设置头信息
+            response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=UTF-8");
+
+            httpContext.setHttpResponse(response);
+        }
+
+        public static void checkRequest(ChannelHandlerContext ctx,
+                                        FullHttpRequest request) {
 
         }
 
-        public static void doAction(ChannelHandlerContext ctx, FullHttpRequest request) {
-            HttpMappingHandler.afterHandel(ctx, request, "请求完成");
-        }
-
-        public static Routed<Routing> checkMethods(
+        /**
+         * 返回参数有：请求、响应、是否没找到url，映射参数值、Routing对象
+         */
+        public static Object doAction(
                 ChannelHandlerContext ctx,
+                HttpContext httpContext,
                 FullHttpRequest request)
                 throws InvocationTargetException,
                 IllegalAccessException, NoSuchMethodException {
+            HttpMappingHandler.checkRequest(ctx, request); // 检查请求
+
             /**
              * 1. 检查方法注解的请求类型（GET、POST等）
              * 2. 检查方法的参数注解等 TODO 暂时先不做
@@ -86,7 +102,13 @@ public class MappingHandleAdapter extends SimpleChannelInboundHandler<FullHttpRe
             Routed<Routing> routed = routerManager.route(RequestMethod.parseOf(method.name()), uri);
             System.out.println(routed);
 
-            if (routed != null && routed.target() != null) {
+            if (routed == null || routed.notFound()) {
+                // TODO 执行未找到请求地址的适配处理
+                httpContext.setNotFound(true);
+                return "未找到请求路径";
+            }
+
+            if (routed.target() != null) {
                 Method r_method = routed.target().getMethod();
 
                 Class<?> returnType = r_method.getReturnType();
@@ -95,6 +117,7 @@ public class MappingHandleAdapter extends SimpleChannelInboundHandler<FullHttpRe
                 for (Type exceptionType : exceptionTypes) {
                     System.out.println("异常类型: " + exceptionType);
                 }
+
 
                 /**
                  * 1. 获取执行方法、具体实例化对象、参数类型、结果类型等；
@@ -117,11 +140,19 @@ public class MappingHandleAdapter extends SimpleChannelInboundHandler<FullHttpRe
                     if (HttpRequest.class.isAssignableFrom(parameterType)) {
                         System.out.println("HttpRequest.class.isAssignableFrom == " + true);
                         parameter[i] = request;
-                    } else if (HttpResponse.class.isAssignableFrom(parameterType)) {
+
+                    } else if (SimpleHttpResponse.class.isAssignableFrom(parameterType)) {
                         System.out.println("HttpResponse.class.isAssignableFrom == " + true);
-                        parameter[i] = new DefaultFullHttpResponse(
+                        // 创建http响应
+                        SimpleHttpResponse response = new SimpleHttpResponse(
                                 HttpVersion.HTTP_1_1,
                                 HttpResponseStatus.OK);
+                        // TODO 请求头的一些初始化操作等
+                        response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=UTF-8");
+                        httpContext.setHttpResponse(response);
+
+                        parameter[i] = httpContext.getHttpResponse();
+
                     } else { // TODO 参数类型解析
                         // 入口参数映射
                         parameter[i] = null; // 默认为空
@@ -132,20 +163,29 @@ public class MappingHandleAdapter extends SimpleChannelInboundHandler<FullHttpRe
                                 Method required = p_annotation.annotationType().getDeclaredMethod("value");
                                 Object rPathVal = required.invoke(p_annotation);
                                 // TODO url入参类型和形参类型的校验， 可以暂时不做
+
+
                                 parameter[i] = routed.params().get(rPathVal.toString());
                             }
                         }
                     }
                 }
 
+                httpContext.setRouting(routed.target());
+                httpContext.setParams(routed.params());
+                httpContext.setNotFound(false);
+
                 Object invoke = r_method.invoke(routed.target().getClassBean(), parameter);
                 System.out.println("执行结果: " + invoke);
+                return invoke;
 
+            } else {
+                // TODO 执行未找到请求地址的适配处理
+                httpContext.setNotFound(true);
+                return "未找到请求路径";
             }
 
-            return routed;
-
-//            RouteNode routeNode = RouterManager.routeMap().add(uri);
+            //            RouteNode routeNode = RouterManager.routeMap().add(uri);
 //            if (routeNode == null) {
 //                ctx.writeAndFlush(null).addListener(ChannelFutureListener.CLOSE);
 //                return null;
@@ -164,18 +204,23 @@ public class MappingHandleAdapter extends SimpleChannelInboundHandler<FullHttpRe
 //            }
         }
 
-        public static void afterHandel(ChannelHandlerContext ctx, FullHttpRequest request, CharSequence string) {
-            // 创建http响应
-            FullHttpResponse response = new DefaultFullHttpResponse(
-                    HttpVersion.HTTP_1_1,
-                    HttpResponseStatus.OK,
-                    Unpooled.copiedBuffer(string, CharsetUtil.UTF_8));
-            // 设置头信息
-            response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=UTF-8");
-            //response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=UTF-8");
-            // 将html write到客户端
-            ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+        public static void afterHandel(ChannelHandlerContext ctx,
+                                       HttpContext httpContext,
+                                       FullHttpRequest request,
+                                       Object result) {
+            if (result == null) {
+                ctx.writeAndFlush(httpContext.getHttpResponse())
+                        .addListener(ChannelFutureListener.CLOSE);
+            } else {
+                SimpleHttpResponse slr = httpContext.getHttpResponse();
+                DefaultFullHttpResponse response = new DefaultFullHttpResponse(
+                        slr.protocolVersion(), slr.status(),
+                        Unpooled.copiedBuffer(result.toString(), slr.getCharset()),
+                        slr.headers(), slr.trailingHeaders());
+                ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+            }
         }
+
     }
 
 }

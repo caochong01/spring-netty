@@ -5,9 +5,9 @@ import java.util.Map;
 public class Routed<T> {
     private final T target;
     private final boolean notFound;
-    private final Map<String, String> params;
+    private final Map<String, Object> params;
 
-    public Routed(T target, boolean notFound, Map<String, String> params) {
+    public Routed(T target, boolean notFound, Map<String, Object> params) {
         this.target = target;
         this.notFound = notFound;
         this.params = params;
@@ -21,7 +21,7 @@ public class Routed<T> {
         return notFound;
     }
 
-    public Map<String, String> params() {
+    public Map<String, Object> params() {
         return params;
     }
 

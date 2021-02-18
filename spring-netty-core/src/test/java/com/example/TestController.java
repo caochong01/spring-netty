@@ -27,8 +27,13 @@ public class TestController {
         return "22";
     }
 
-    @RouteMapping(value = "/r3/:id")
-    public void route3(@PathVariable("id") Integer code) {
+    @RouteMapping(value = "/r3/:id/:id0/:id1/:id2/:id3/:id4")
+    public void route3(@PathVariable("id") Integer code,
+                       @PathVariable("id0") String a0,
+                       @PathVariable("id1") Boolean a1,
+                       @PathVariable("id2") char a2,
+                       @PathVariable("id3") double a3,
+                       @PathVariable("id4") boolean a4) {
         System.out.println("我确实执行了，但我不返回" + code);
     }
 

@@ -12,6 +12,7 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
+import org.springframework.util.ClassUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
@@ -162,10 +163,12 @@ public class MappingHandleAdapter extends SimpleChannelInboundHandler<FullHttpRe
                             if (PathVariable.class.equals(p_annotation.annotationType())) { // 对PathVariable注解的解析
                                 Method required = p_annotation.annotationType().getDeclaredMethod("value");
                                 Object rPathVal = required.invoke(p_annotation);
+
                                 // TODO url入参类型和形参类型的校验， 可以暂时不做
 
+                                // 根据参数类型对路径动态值进行转换
+                                parameter[i] = convertType(parameterType, routed.params().get(rPathVal.toString()));
 
-                                parameter[i] = routed.params().get(rPathVal.toString());
                             }
                         }
                     }
@@ -221,6 +224,57 @@ public class MappingHandleAdapter extends SimpleChannelInboundHandler<FullHttpRe
             }
         }
 
+    }
+
+    private static Object convertType(Class<?> convertType, Object convertValue) {
+        if (convertType.isPrimitive() || ClassUtils.isPrimitiveWrapper(convertType)) {
+            return convertToPrimitive(convertType, convertValue);
+        } else {
+            // TODO 用户自定义类型转换器 write....
+            System.out.println("用户自定义类型");
+        }
+        return convertValue;
+    }
+
+    private static Object convertToPrimitive(Class<?> convertType, Object convertValue) {
+        if (convertValue == null)
+            return null;
+
+        String convertVal = convertValue.toString();
+
+        // Boolean, Byte, Character, Short, Integer, Long, Float, Double, or Void
+        if (ClassUtils.isAssignable(int.class, convertType)) {
+            System.out.println("int");
+            return Integer.parseInt(convertVal);
+        } else if (ClassUtils.isAssignable(boolean.class, convertType)) {
+            System.out.println("bool");
+            return Boolean.parseBoolean(convertVal);
+        } else if (ClassUtils.isAssignable(byte.class, convertType)) {
+            System.out.println("byte");
+            return Byte.parseByte(convertVal);
+        } else if (ClassUtils.isAssignable(long.class, convertType)) {
+            System.out.println("long");
+            return Long.parseLong(convertVal);
+        } else if (ClassUtils.isAssignable(char.class, convertType)) {
+            System.out.println("char");
+            return (char) Integer.parseInt(convertVal);
+        } else if (ClassUtils.isAssignable(short.class, convertType)) {
+            System.out.println("short");
+            return Short.parseShort(convertVal);
+        } else if (ClassUtils.isAssignable(double.class, convertType)) {
+            System.out.println("double");
+            return Double.parseDouble(convertVal);
+        } else if (ClassUtils.isAssignable(float.class, convertType)) {
+            System.out.println("float");
+            return Float.parseFloat(convertVal);
+        } else if (ClassUtils.isAssignable(void.class, convertType)) {
+            System.out.println("void");
+            return null;
+        } else {
+            System.out.println("无法解析的Java基础类型" + convertType);
+        }
+
+        return convertValue;
     }
 
 }

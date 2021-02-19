@@ -43,9 +43,10 @@ Check the instructions for the moment.
 
 I hope you can participate in the development of the framework and improve it together. Thanks!
 
-如有疑问也可随时联系我，我的邮箱：caochong01@outlook.com
+如有疑问也可随时联系我，我的邮箱：[caochong01@outlook.com](mailto:caochong01@outlook.com)。
 
-If you have any questions, please feel free to contact me at my email address: caochong01@outlook.com
+If you have any questions, please feel free to contact me at my email
+address: [caochong01@outlook.com](mailto:caochong01@outlook.com).
 
 ### 资料文献
 
